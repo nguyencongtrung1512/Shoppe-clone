@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import AsideFilter from './AsideFilter'
 import Product from './Product/Product'
 import SortProductList from './SortProductList'
@@ -32,7 +32,7 @@ export default function ProductList() {
     queryFn: () => {
       return productApi.getProduct(queryConfig as ProductListConfig)
     },
-    staleTime: Infinity
+    placeholderData: keepPreviousData
   })
   console.log(data)
   return (
@@ -44,7 +44,7 @@ export default function ProductList() {
               <AsideFilter />
             </div>
             <div className='col-span-9'>
-              <SortProductList />
+              <SortProductList queryConfig={queryConfig} pageSize={data.data.data.pagination.page_size} />
               <div className='mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>
                 {data.data.data.products.map((product) => (
                   <div key={product._id} className='col-span-1'>

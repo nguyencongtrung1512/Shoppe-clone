@@ -96,7 +96,7 @@ export default function Pagination({ queryConfig, pageSize }: Props) {
             className={classNames(
               'bg-white border border-gray-300 py-2 px-4 first:rounded-l-md last:rounded-r-md hover:bg-gray-100 items-center shadow-sm justify-center',
               {
-                'boder-cyan-500': page === pageNumber,
+                'boder-orange-500 text-orange-500': page === pageNumber,
                 'boder-gray-300': page !== pageNumber
               }
             )}
