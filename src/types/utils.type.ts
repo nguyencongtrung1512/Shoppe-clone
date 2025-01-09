@@ -1,4 +1,4 @@
-export interface suscessResponse<Data> {
+export interface SuscessResponse<Data> {
   messsage: string
   data: Data
 }
