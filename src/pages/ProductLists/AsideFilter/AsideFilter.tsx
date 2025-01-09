@@ -1,17 +1,61 @@
-import { createSearchParams, Link } from 'react-router-dom'
-import Input from '../../../component/Input'
+import { createSearchParams, Link, useNavigate } from 'react-router-dom'
 import Button from '../../../component/Button'
 import { QueryConfig } from '../ProductList'
 import { Category } from '../../../types/Category.type'
 import classNames from 'classnames'
+import InputNumber from '../../../component/inputNumber'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { schema } from '../../../utils/rules'
 
 interface Props {
   queryConfig: QueryConfig
   categories: Category[]
 }
+
+type FormData = {
+  price_min: string 
+  price_max: string 
+}
+/**
+ * 
+ Rule validate
+ Nếu có price_min price_max thì price_max phải lớn hơn price_min
+ còn ko có price_min thì ko có price_max
+ */
+
+const priceSchema = schema.pick(['price_min', 'price_max']).required()
+
 export default function AsideFilter({ queryConfig, categories }: Props) {
   const { category } = queryConfig
-  console.log(category, categories)
+  const {
+    control,
+    handleSubmit,
+    watch,
+    trigger,
+    formState: { errors }
+  } = useForm<FormData>({
+    defaultValues: {
+      price_min: '',
+      price_max: ''
+    },
+    resolver: yupResolver(priceSchema),
+    shouldFocusError: false
+  })
+  const navigate = useNavigate()
+  const valueForm = watch()
+  console.log(valueForm)
+  const onSubmit = handleSubmit((data) => {
+    navigate({
+      pathname: '/',
+      search: createSearchParams({
+        ...queryConfig,
+        price_max: data.price_max,
+        price_min: data.price_min
+      }).toString()
+    })
+  })
+
   return (
     <div className='py-4'>
       <Link
@@ -49,7 +93,7 @@ export default function AsideFilter({ queryConfig, categories }: Props) {
                     category: categoryItem._id
                   }).toString()
                 }}
-                className={classNames('relative px-2', {
+                className={classNames('flex relative px-2', {
                   'text-orange-500 font-semibold': isActive
                 })}
               >
@@ -87,23 +131,53 @@ export default function AsideFilter({ queryConfig, categories }: Props) {
       <div className='bg-gray-300 h-[1px] my-4' />
       <div className='my-5'>
         <div>khoảng giá</div>
-        <form className='mt-2'>
+        <form className='mt-2' onSubmit={onSubmit}>
           <div className='flex item-start'>
-            <Input
-              type='text'
-              className='grow'
-              placeholder='đ TỪ'
-              name='from'
-              classNameInput='w-full p-1 border border-gray-300 focus:border-gray-500 focus:shadow-sm rounded-sm'
+            <Controller
+              control={control}
+              name='price_min'
+              render={({ field }) => {
+                return (
+                  <InputNumber
+                    onChange={(event) => {
+                      field.onChange(event)
+                      trigger('price_max')
+                    }}
+                    value={field.value}
+                    type='text'
+                    className='grow'
+                    classnameError='hidden'
+                    placeholder='đ TỪ'
+                    classNameInput='w-full p-1 border border-gray-300 focus:border-gray-500 focus:shadow-sm rounded-sm'
+                    ref={field.ref}
+                  />
+                )
+              }}
             />
             <div className='mx-2 mt-2 shrink-0'>-</div>
-            <Input
-              type='text'
-              className='grow'
-              placeholder='đ ĐẾN'
-              name='from'
-              classNameInput='w-full p-1 border border-gray-300 focus:border-gray-500 focus:shadow-sm rounded-sm'
+            <Controller
+              control={control}
+              name='price_max'
+              render={({ field }) => {
+                return (
+                  <InputNumber
+                    onChange={(event) => {
+                      field.onChange(event)
+                      trigger('price_max')
+                    }}
+                    value={field.value}
+                    type='text'
+                    classnameError='hidden'
+                    className='grow'
+                    placeholder='đ ĐẾN'
+                    classNameInput='w-full p-1 border border-gray-300 focus:border-gray-500 focus:shadow-sm rounded-sm'
+                  />
+                )
+              }}
             />
+          </div>
+          <div className='mt-1 ml-2 text-red-600 min-h[1.25rem] text-sm text-red text-center'>
+            {errors.price_max?.message}
           </div>
           <Button
             className='w-full p-2 uppercase bg-orange-500 hover:bg-orange-600 text-white
