@@ -36,9 +36,9 @@ export default function ProductList() {
     },
     placeholderData: keepPreviousData
   })
-  
+
   const { data: categoriesData } = useQuery({
-    queryKey: ['categoriescategories'],
+    queryKey: ['categories'],
     queryFn: () => {
       return categoryApi.getCategories()
     },
@@ -50,7 +50,7 @@ export default function ProductList() {
         {productsData && (
           <div className='grid grid-cols-12 gap-6'>
             <div className='col-span-3'>
-              <AsideFilter categories={categoriesData?.data.data} queryConfig={queryConfig}/>
+              <AsideFilter categories={categoriesData?.data.data} queryConfig={queryConfig} />
             </div>
             <div className='col-span-9'>
               <SortProductList queryConfig={queryConfig} pageSize={productsData.data.data.pagination.page_size} />
