@@ -15,12 +15,15 @@ export function formatCurrency(currency: number) {
 //đoạn code java để tách số tiền tền tố ngăn cách bởi dấu chấm, sử dụng Intl.NumberFormat 1000000 >> 1.000.000
 
 export function formatNumberToSocialStyle(number: number) {
-  return new Intl.NumberFormat('en', { 
+  return new Intl.NumberFormat('en', {
     notation: 'compact',
-    maximumFractionDigits: 1 
+    maximumFractionDigits: 1
   })
     .format(number)
     .replace('.', ',')
     .toLowerCase()
 }
 // tách 1200 >> 1.2k
+
+export const rateSale = (originalPrice: number, salePrice: number) =>
+  Math.round(((originalPrice - salePrice) / originalPrice) * 100) + '%'

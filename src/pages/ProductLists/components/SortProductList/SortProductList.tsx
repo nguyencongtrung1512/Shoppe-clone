@@ -1,8 +1,8 @@
 import classNames from 'classnames'
-import Button from '../../../component/Button'
-import { QueryConfig } from '../ProductList'
-import { ProductListConfig } from '../../../types/product.type'
-import { sortBy, order as orderConstant } from '../../../constants/product'
+import Button from '../../../../component/Button'
+import { QueryConfig } from '../../ProductList'
+import { ProductListConfig } from '../../../../types/product.type'
+import { sortBy, order as orderConstant } from '../../../../constants/product'
 import { createSearchParams, Link, useNavigate } from 'react-router-dom'
 import { omit } from 'lodash'
 
