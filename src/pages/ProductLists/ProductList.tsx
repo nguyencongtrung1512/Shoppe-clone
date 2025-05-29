@@ -16,14 +16,15 @@ export default function ProductList() {
     queryFn: () => {
       return productApi.getProduct(queryConfig as ProductListConfig)
     },
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 3
   })
 
   const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
     queryFn: () => {
       return categoryApi.getCategories()
-    },
+    }
   })
 
   return (

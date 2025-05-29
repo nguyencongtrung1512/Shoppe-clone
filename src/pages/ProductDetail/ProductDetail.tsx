@@ -5,6 +5,8 @@ import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } 
 import InputNumber from '../../component/inputNumber'
 import DOMPurify from 'dompurify'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Product as ProductType, ProductListConfig } from '../../types/product.type'
+import Product from '../ProductLists/components/Product'
 
 function ProductDetail() {
   const { nameId } = useParams()
@@ -20,6 +22,17 @@ function ProductDetail() {
     () => (product ? product?.images.slice(...currentIndexImages) : []),
     [product, currentIndexImages]
   )
+  const queryConfig: ProductListConfig = { limit: '20', page: '1', category: product?.category._id }
+  const { data: productsData } = useQuery({
+    queryKey: ['products', queryConfig],
+    queryFn: () => {
+      return productApi.getProduct(queryConfig)
+    },
+    staleTime: 1000 * 60 * 3,
+    enabled: Boolean(product)
+  })
+  console.log('tao owr ddaay ', productsData)
+
   const imageRef = useRef<HTMLImageElement>(null)
 
   useEffect(() => {
@@ -33,7 +46,7 @@ function ProductDetail() {
   }
 
   const nextImages = () => {
-    if (currentIndexImages[1] < product?.images.length) {
+    if (currentIndexImages[1] < (product as ProductType).images.length) {
       setCurrentIndexImages((prev) => [prev[0] + 1, prev[1] + 1])
     }
   }
@@ -46,7 +59,7 @@ function ProductDetail() {
     const rect = event.currentTarget.getBoundingClientRect()
     const image = imageRef.current as HTMLImageElement
     const { naturalWidth, naturalHeight } = image
-    // cachs 1: lấy offsetX, offsetY đươn giản khi chúng ta xử lí được bubble event bằng cách thêm pointer-event-none vào class 
+    // cachs 1: lấy offsetX, offsetY đươn giản khi chúng ta xử lí được bubble event bằng cách thêm pointer-event-none vào class
     //const { offsetX, offsetY } = event.nativeEvent
     //cách 2: Lấy offsetX, offsetY khi chúng ta không xử lý event bubble
     const offsetX = event.pageX - (rect.x + window.scrollX)
@@ -251,6 +264,20 @@ function ProductDetail() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      <div className='mt-8'>
+        <div className='container'>
+          <h2 className='text-lg font-medium uppercase rounded text-slate-700'>Có thể bạn không thích</h2>
+          {productsData && (
+            <div className='mt-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3'>
+              {productsData.data.data.products.map((product) => (
+                <div key={product._id} className='col-span-1'>
+                  <Product product={product} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
