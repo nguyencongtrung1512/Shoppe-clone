@@ -1,12 +1,30 @@
-import { Link } from 'react-router-dom'
+import { createSearchParams, Link, useNavigate } from 'react-router-dom'
 import Popover from '../Popover'
 import { useMutation } from '@tanstack/react-query'
 import authApi from '../../apis/auth.api'
 import { useContext } from 'react'
 import { AppContext } from '../../contexts/app.context'
 import Button from '../Button'
+import useQueryConfig from '../../hooks/useQueryConfig'
+import { useForm } from 'react-hook-form'
+import { schema, Schema } from '../../utils/rules'
+import { omit } from 'lodash'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+type FormData = Pick<Schema, 'name'>
+
+const nameSchema = schema.pick(['name'])
 
 export default function Header() {
+  const queryConfig = useQueryConfig()
+  const navigate = useNavigate()
+
+  const { register, handleSubmit } = useForm<FormData>({
+    defaultValues: {
+      name: ''
+    },
+    resolver: yupResolver(nameSchema)
+  })
   const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useContext(AppContext)
   const logoutMutation = useMutation({
     mutationFn: () => authApi.logout(),
@@ -16,6 +34,26 @@ export default function Header() {
     }
   })
   const handleLogout = () => logoutMutation.mutate()
+
+  const onSubmitSearch = handleSubmit((data) => {
+    const config = queryConfig.order
+      ? omit(
+          {
+            ...queryConfig,
+            name: data.name
+          },
+          ['order', 'sort_by']
+        )
+      : {
+          ...queryConfig,
+          name: data.name
+        }
+
+    navigate({
+      pathname: '/',
+      search: createSearchParams(config).toString()
+    })
+  })
   return (
     <div className='pb-5 pt-1 bg-orange-600 text-white'>
       <div className='container'>
@@ -111,13 +149,13 @@ export default function Header() {
             </g>
           </svg>
         </Link>
-        <form className='col-span-8'>
+        <form className='col-span-8' onSubmit={onSubmitSearch}>
           <div className='bg-white rounded-sm p-1 flex'>
             <input
               type='text'
-              name='search'
               className='text-black px-3 py-2 flex-grow border-none outline-none bg-transparent'
               placeholder='FREESHIP ĐƠN TỪ 0Đ'
+              {...register('name')}
             />
             <button aria-label='Search' className='rounded-sm py-2 px-6 flex-shrink-0 bg-orange-500 hover:opacity-90'>
               <svg

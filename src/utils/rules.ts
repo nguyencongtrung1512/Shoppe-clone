@@ -91,7 +91,13 @@ export const schema = yup.object({
     name: 'price-not-allowed',
     message: 'Price not allowed',
     test: testPriceMinMax
-  })
+  }),
+  name: yup
+    .string()
+    .trim()
+    .required('Name is required')
+    .min(2, 'Name is too long 2 - 160 characters')
+    .max(160, 'Name is too long 2 - 160 characters')
 })
 
 // const loginSchema = yup.object().shape({
