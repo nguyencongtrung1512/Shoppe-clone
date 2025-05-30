@@ -1,6 +1,6 @@
 import { createSearchParams, Link, useNavigate } from 'react-router-dom'
 import Popover from '../Popover'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import authApi from '../../apis/auth.api'
 import { useContext } from 'react'
 import { AppContext } from '../../contexts/app.context'
@@ -10,10 +10,16 @@ import { useForm } from 'react-hook-form'
 import { schema, Schema } from '../../utils/rules'
 import { omit } from 'lodash'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { PurchasesStatus } from '../../constants/purchase'
+import purchaseApi from '../../apis/purchase.api'
+
+import noproduct from '../../assets/image/noproduct.png'
+import { formatCurrency } from '../../utils/utils'
 
 type FormData = Pick<Schema, 'name'>
 
 const nameSchema = schema.pick(['name'])
+const MAX_PURCHASE = 5
 
 export default function Header() {
   const queryConfig = useQueryConfig()
@@ -25,6 +31,18 @@ export default function Header() {
     },
     resolver: yupResolver(nameSchema)
   })
+
+  //
+  const { data: purchasesInCartData } = useQuery({
+    queryKey: ['purchase', { status: PurchasesStatus.inCart }],
+    queryFn: () => {
+      return purchaseApi.getPurchases({
+        status: PurchasesStatus.inCart
+      })
+    }
+  })
+
+  const purchasesInCart = purchasesInCartData?.data.data
   const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useContext(AppContext)
   const logoutMutation = useMutation({
     mutationFn: () => authApi.logout(),
@@ -180,96 +198,48 @@ export default function Header() {
             placement='bottom-end'
             renderPopover={
               <div className='max-w-[400px] bg-white relative shadow-md rounded-sm boder boder-gray-200'>
-                <div className='p-2'>
-                  <div className='text-gray-400 capitailize'>Sản phẩm mới thêm</div>
-                  <div className='mt-5'>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          className='w-12 h-12 object-cover'
-                          src='https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly4w8urcwpsx9f.webp'
-                          alt='anh'
-                        />
-                      </div>
-                      <div className='flex grow ml-2 overflow-hidden'>
-                        <div className='truncate'>Dây Sạc Tự Ngắt - Dây Cáp Sạc Dữ Liệu Sạc Nhanh 100W Micro USB</div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange-500'>đ1.000</span>
+                {purchasesInCart ? (
+                  <div className='p-2'>
+                    <div className='text-gray-400 capitailize'>Sản phẩm mới thêm</div>
+                    <div className='mt-5'>
+                      {purchasesInCart.slice(0, MAX_PURCHASE).map((purchase) => (
+                        <div className='mt-2 py-2 flex hover:bg-gray-100' key={purchase._id}>
+                          <div className='flex-shrink-0'>
+                            <img
+                              className='w-12 h-12 object-cover'
+                              src={purchase.product.image}
+                              alt={purchase.product.name}
+                            />
+                          </div>
+                          <div className='flex grow ml-2 overflow-hidden'>
+                            <div className='truncate'>{purchase.product.name}</div>
+                            <div className='ml-2 flex-shrink-0'>
+                              <span className='text-orange-500'>đ{formatCurrency(purchase.product.price)}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          className='w-12 h-12 object-cover'
-                          src='https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly4w8urcwpsx9f.webp'
-                          alt='anh'
-                        />
+                    <div className='flex mt-6 item-center justify-between'>
+                      <div className='cappitalize text-gray-500'>
+                        {purchasesInCart.length > MAX_PURCHASE ? purchasesInCart.length - MAX_PURCHASE : ''} Thêm hàng
+                        vào giỏ
                       </div>
-                      <div className='flex grow ml-2 overflow-hidden'>
-                        <div className='truncate'>Dây Sạc Tự Ngắt - Dây Cáp Sạc Dữ Liệu Sạc Nhanh 100W Micro USB</div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange-500'>đ1.000</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          className='w-12 h-12 object-cover'
-                          src='https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly4w8urcwpsx9f.webp'
-                          alt='anh'
-                        />
-                      </div>
-                      <div className='flex grow ml-2 overflow-hidden'>
-                        <div className='truncate'>Dây Sạc Tự Ngắt - Dây Cáp Sạc Dữ Liệu Sạc Nhanh 100W Micro USB</div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange-500'>đ1.000</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          className='w-12 h-12 object-cover'
-                          src='https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly4w8urcwpsx9f.webp'
-                          alt='anh'
-                        />
-                      </div>
-                      <div className='flex grow ml-2 overflow-hidden'>
-                        <div className='truncate'>Dây Sạc Tự Ngắt - Dây Cáp Sạc Dữ Liệu Sạc Nhanh 100W Micro USB</div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange-500'>đ1.000</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          className='w-12 h-12 object-cover'
-                          src='https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ly4w8urcwpsx9f.webp'
-                          alt='anh'
-                        />
-                      </div>
-                      <div className='flex grow ml-2 overflow-hidden'>
-                        <div className='truncate'>Dây Sạc Tự Ngắt - Dây Cáp Sạc Dữ Liệu Sạc Nhanh 100W Micro USB</div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange-500'>đ1.000</span>
-                        </div>
-                      </div>
+                      <button className='captiaize bg-orange-500 hover:bg-opacity-90 px-4 py-2 rounded-'>
+                        Xem giỏ hàng
+                      </button>
                     </div>
                   </div>
-                  <div className='flex mt-6 item-center justify-between'>
-                    <div className='cappitalize text-gray-500'>Thêm hàng vào giỏ</div>
-                    <button className='captiaize bg-orange-500 hover:bg-opacity-90 px-4 py-2 rounded-'>
-                      Xem giỏ hàng
-                    </button>
+                ) : (
+                  <div className='flex items-center justify-center w-[300px] h-[300px] flex-col py-2 px-3'>
+                      <img src={noproduct} alt='no product' />
+                      <div className='text-sm text-gray-400'>Chưa có sản phẩm</div>
                   </div>
-                </div>
+                )}
               </div>
             }
           >
-            <Link to='/'>
+            <Link to='/' className='relative'>
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 fill='none'
@@ -284,6 +254,7 @@ export default function Header() {
                   d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z'
                 />
               </svg>
+              <span className='absolute top-0 right-0 text-black bg-white w-4 h-4 px-[1px] py-[1px] flex items-center justify-center rounded-full'>{purchasesInCart?.length}</span>
             </Link>
           </Popover>
         </div>

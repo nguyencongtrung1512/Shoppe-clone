@@ -1,5 +1,5 @@
 export interface SuscessResponse<Data> {
-  messsage: string
+  message: string
   data: Data
 }
 

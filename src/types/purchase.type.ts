@@ -1,5 +1,13 @@
 import { Product } from './product.type'
 
+// -1: sản phẩm đang trong giỏ hàng
+// 0 : tất cả sản phẩm
+// 1: sản phẩm đang đợi xác nhận từ chủ shop
+// 2: sản phẩm đang được lấy hàng
+// 3: sản phẩm đang vận chuyển
+// 4 : sản phẩm đã được giao
+// 5 : sản phẩm bị hủy
+
 export type PurchaseStatus = -1 | 1 | 2 | 3 | 4 | 5
 
 export type PurchaseListStatus = PurchaseStatus | 0

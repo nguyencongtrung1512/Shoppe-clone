@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import productApi from '../../apis/product.api'
 import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } from '../../utils/utils'
@@ -7,14 +7,22 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Product as ProductType, ProductListConfig } from '../../types/product.type'
 import Product from '../ProductLists/components/Product'
 import QuantityController from '../../component/QuantityController'
+import purchaseApi from '../../apis/purchase.api'
+import { queryClient } from '../../main'
+import { PurchasesStatus } from '../../constants/purchase'
+import { toast } from 'react-toastify'
 
 function ProductDetail() {
   const { nameId } = useParams()
   const [buyCount, setBuyCount] = useState(1)
   const id = getIdFromNameId(nameId as string)
+  //call api
   const { data: productDetailData } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productApi.getProductDetail(id as string)
+  })
+  const addToCartMutation = useMutation({
+    mutationFn: (body: { buy_count: number; product_id: string }) => purchaseApi.addToCart(body)
   })
   const [currentIndexImages, setCurrentIndexImages] = useState([0, 5])
   const [activeImages, setActiveImages] = useState('')
@@ -32,7 +40,6 @@ function ProductDetail() {
     staleTime: 1000 * 60 * 3,
     enabled: Boolean(product)
   })
-  console.log('tao owr ddaay ', productsData)
 
   const imageRef = useRef<HTMLImageElement>(null)
 
@@ -42,7 +49,7 @@ function ProductDetail() {
     }
   }, [product])
 
-  const choseImages = (img) => {
+  const choseImages = (img: string) => {
     setActiveImages(img)
   }
 
@@ -88,6 +95,27 @@ function ProductDetail() {
 
   const handleBuyCount = (value: number) => {
     setBuyCount(value)
+  }
+
+  const addToCart = () => {
+    addToCartMutation.mutate(
+      { buy_count: buyCount, product_id: product?._id as string },
+      {
+        onSuccess: (data) => {
+          toast.success(data.data.message, {
+            position: 'top-center',
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: 'light'
+          })
+          queryClient.invalidateQueries({ queryKey: ['purchase', { status: PurchasesStatus.inCart }] })
+        }
+      }
+    )
   }
   // console.log(product)
   if (!product) return null
@@ -212,7 +240,7 @@ function ProductDetail() {
               </div>
 
               <div className='mt-8 flex items-center'>
-                <button>
+                <button onClick={addToCart}>
                   <div className='flex items-center justify-center h-12 rounded-sm border border-orange-500 bg-orange/10 py-1 px-5 text-sm text-orange-500 hover:bg-orange-100'>
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
