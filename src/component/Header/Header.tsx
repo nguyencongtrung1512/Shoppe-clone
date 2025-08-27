@@ -14,6 +14,8 @@ import { PurchasesStatus } from '../../constants/purchase'
 import purchaseApi from '../../apis/purchase.api'
 import noproduct from '../../assets/image/noproduct.png'
 import { formatCurrency } from '../../utils/utils'
+import { queryClient } from '../../main'
+import path from '../../constants/path'
 
 type FormData = Pick<Schema, 'name'>
 
@@ -23,6 +25,7 @@ const MAX_PURCHASE = 5
 export default function Header() {
   const queryConfig = useQueryConfig()
   const navigate = useNavigate()
+  const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useContext(AppContext)
 
   const { register, handleSubmit } = useForm<FormData>({
     defaultValues: {
@@ -38,16 +41,19 @@ export default function Header() {
       return purchaseApi.getPurchases({
         status: PurchasesStatus.inCart
       })
-    }
+    },
+    enabled: isAuthenticated
   })
 
   const purchasesInCart = purchasesInCartData?.data.data
-  const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useContext(AppContext)
   const logoutMutation = useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
       setIsAuthenticated(false)
       setProfile(null)
+       queryClient.setQueryData(['purchase', { status: PurchasesStatus.inCart }], { data: { data: [] } })
+
+      queryClient.removeQueries({ queryKey: ['purchases', { status: PurchasesStatus.inCart }] })
     }
   })
   const handleLogout = () => logoutMutation.mutate()
@@ -224,15 +230,15 @@ export default function Header() {
                         {purchasesInCart.length > MAX_PURCHASE ? purchasesInCart.length - MAX_PURCHASE : ''} Thêm hàng
                         vào giỏ
                       </div>
-                      <button className='captiaize bg-orange-500 hover:bg-opacity-90 px-4 py-2 rounded-'>
+                      <Link to={path.cart} className='captiaize bg-orange-500 hover:bg-opacity-90 px-4 py-2 rounded-'>
                         Xem giỏ hàng
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 ) : (
                   <div className='flex items-center justify-center w-[300px] h-[300px] flex-col py-2 px-3'>
-                      <img src={noproduct} alt='no product' />
-                      <div className='text-sm text-gray-400'>Chưa có sản phẩm</div>
+                    <img src={noproduct} alt='no product' />
+                    <div className='text-sm text-gray-400'>Chưa có sản phẩm</div>
                   </div>
                 )}
               </div>
@@ -253,7 +259,11 @@ export default function Header() {
                   d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z'
                 />
               </svg>
-              <span className='absolute top-0 right-0 text-black bg-white w-4 h-4 px-[1px] py-[1px] flex items-center justify-center rounded-full'>{purchasesInCart?.length}</span>
+              {isAuthenticated && purchasesInCart && (
+                <span className='absolute top-0 right-0 text-black bg-white w-4 h-4 px-[1px] py-[1px] flex items-center justify-center rounded-full'>
+                  {purchasesInCart?.length}
+                </span>
+              )}
             </Link>
           </Popover>
         </div>
